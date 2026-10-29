@@ -130,7 +130,7 @@ with tab1:
         check_alert(df_live)
         
         # Threshold setting
-        alert_dist = st.slider("Set alert distance (km)", 100000, 20000000, 7500000)
+        alert_dist = st.slider("Set alert distance (km)", 100000, 50000000, 7500000)
         custom_danger = df_live[(df_live['Hazardous']==True) & (df_live['Distance (km)'] < alert_dist)]
         if not custom_danger.empty:
             st.error(f"Alert triggered for distance < {alert_dist} km")
