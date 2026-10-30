@@ -126,15 +126,12 @@ with tab1:
         col1.metric("Today", len(df_live))
         col2.metric("Hazardous Today", len(df_live[df_live['Hazardous']==True]))
         col3.metric("Closest km", int(df_live['Distance (km)'].min()))
+
+         # Threshold setting
+        alert_distance = st.slider("Set alert distance (km)", 100000, 50000000, 7500000)
         
         # CHECK ALERT
         check_alert(df_live, alert_distance)
-        
-        # Threshold setting
-        alert_dist = st.slider("Set alert distance (km)", 100000, 50000000, 7500000)
-        custom_danger = df_live[(df_live['Hazardous']==True) & (df_live['Distance (km)'] < alert_dist)]
-        if not custom_danger.empty:
-            st.error(f"Alert triggered for distance < {alert_dist} km")
         
         st.dataframe(df_live, use_container_width=True)
         
