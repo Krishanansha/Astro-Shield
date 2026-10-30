@@ -8,7 +8,7 @@ import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-st.set_page_config(page_title="ASTRO-SHIELD", page_icon="🛰️", layout="wide")
+st.set_page_config(page_title="ASTRO-TRACK", page_icon="🛰️", layout="wide")
 
 st.markdown("""
 <style>
@@ -128,7 +128,7 @@ def get_sentry():
 # --- SIDEBAR + UNITS ---
 st.sidebar.header("⚙️ Settings")
 unit = st.sidebar.selectbox("Distance Unit", ["LD (Lunar Distance)", "km", "AU", "Miles"], index=0)
-alert_km = st.sidebar.slider("Alert threshold (km)", 50000, 10000000, 7500000, step=50000)
+alert_km = st.sidebar.slider("Alert threshold (km)", 50000, 50000000, 7500000, step=50000)
 st.sidebar.write(f"≈ {alert_km/384400:.1f} LD | {alert_km/149597870:.4f} AU")
 
 def format_dist(row):
