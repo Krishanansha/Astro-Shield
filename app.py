@@ -194,10 +194,10 @@ with tab3:
     st.caption("Data: NASA CNEOS Fireball API - 200 latest atmospheric impacts. Size = energy in kT")
     try:
         df_fb = get_fireballs()
-       if "energy_kT" not in df_fb.columns:
-    df_fb["energy_kT"] = 1
-df_fb["energy_kT"] = df_fb["energy_kT"].fillna(0.1).replace(0, 0.1)
-st.map(df_fb, latitude="lat", longitude="lon")
+        if "energy_kT" not in df_fb.columns:
+        df_fb["energy_kT"] = 1
+        df_fb["energy_kT"] = df_fb["energy_kT"].fillna(0.1).replace(0, 0.1)
+        st.map(df_fb, latitude="lat", longitude="lon")
         st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
         if not df_fb.empty:
             fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="date", color="energy_kT", title="Past Impact Locations (Fireballs)")
