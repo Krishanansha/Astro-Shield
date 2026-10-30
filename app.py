@@ -4,27 +4,28 @@ import pandas as pd
 import plotly.express as px
 from datetime import date
 import os
+import streamlit.components.v1 as components
 
 NASA_KEY = "bbGg9KHt8PkwBCJLFBtFTBwHWHQ8FnnbKcHcP6j6"  # <-- put your key here
 
 st.set_page_config(page_title="ASTRO-SHIELD V3 FINAL", layout="wide")
-st.title("☄️ ASTRO-SHIELD V3 - With Alert + Kaggle AI")
+st.title("☄️ ASTRO-SHIELD V3")
 
 # ---------- ALERT FUNCTION ----------
-def check_alert(df):
+def check_alert(df,alert_distance):
     if df.empty: return
-    dangerous = df[(df['Hazardous']==True) & (df['Distance (km)'] < 7500000)]
+    dangerous = df[df['Distance (km)'] < alert_distance]
     if not dangerous.empty:
         st.error(f"🚨 ALERT! {len(dangerous)} POTENTIALLY HAZARDOUS ASTEROID CLOSE TODAY!")
         for _, row in dangerous.iterrows():
             st.toast(f"ALERT: {row['Name']} is {row['Distance (km)']} km away!", icon="☄️")
         # Sound alert in browser
-        st.markdown("""
+        components.html("""
         <audio autoplay>
         <source src="https://www.soundjay.com/buttons/sounds/beep-07a.mp3" type="audio/mpeg">
         </audio>
         <script>alert('🚨 DANGEROUS ASTEROID ALERT! Check dashboard!');</script>
-        """, unsafe_allow_html=True)
+        """, height=0)
         st.balloons()
 
 # ---------- LOAD KAGGLE + TRAIN ----------
@@ -127,7 +128,7 @@ with tab1:
         col3.metric("Closest km", int(df_live['Distance (km)'].min()))
         
         # CHECK ALERT
-        check_alert(df_live)
+        check_alert(df_live, alert_distance)
         
         # Threshold setting
         alert_dist = st.slider("Set alert distance (km)", 100000, 50000000, 7500000)
