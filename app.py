@@ -18,7 +18,7 @@ h1 {color:#6cf !important;}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🛰️ ASTRO-SHIELD")
+st.title("🛰️ ASTRO-HUNTER")
 st.markdown("### AI-Powered Near-Earth Object Early Monitoring")
 st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry | Not an official warning")
 st.divider()
@@ -209,7 +209,7 @@ with tab3:
         st.map(df_fb, latitude="lat", longitude="lon")
         st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
         if not df_fb.empty:
-            fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="date", color="energy_kT", title="Past Impact Locations (Fireballs)")
+            fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="energy_kT", color="energy_kT", title="Past Impact Locations (Fireballs)")
             st.plotly_chart(fig_fb, use_container_width=True)
     except Exception as e: st.error(f"Fireball error: {e}")
 
