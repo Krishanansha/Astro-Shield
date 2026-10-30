@@ -111,7 +111,7 @@ def get_fireballs():
 
 @st.cache_data(ttl=3600)
 def get_sentry():
-    url="https://ssd-api.jpl.nasa.gov/sentry.api?all=1&limit=100"
+    url="url="https://ssd-api.jpl.nasa.gov/sentry.api""
     r=requests.get(url, timeout=20); r.raise_for_status(); d=r.json()
     rows=[]
     for obj in d.get('data',[]):
