@@ -225,7 +225,7 @@ with tab4:
     except Exception as e: st.error(f"Sentry error: {e}")
 
 with tab5:
-    st.subheader("Past Data from your CSV (No 10 limit - Full History)")
+    st.subheader("Past Data from CSV")
     if model_info:
         df_hist = model_info[4]
         st.write(f"Showing all {len(df_hist)} records from {model_info[2]}")
