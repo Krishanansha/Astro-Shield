@@ -8,7 +8,7 @@ import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-st.set_page_config(page_title="ASTRO-TRACK", page_icon="🛰️", layout="wide")
+st.set_page_config(page_title="NEONETRA", page_icon="🛰️", layout="wide")
 
 st.markdown("""
 <style>
@@ -18,9 +18,9 @@ h1 {color:#6cf !important;}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🛰️ ASTRO-HUNTER")
+st.title("🛰️ NEONETRA")
 st.markdown("### AI-Powered Near-Earth Object Early Monitoring")
-st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry | Not an official warning")
+st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry")
 st.divider()
 
 NASA_KEY = st.secrets.get("NASA_KEY", "DEMO_KEY")
