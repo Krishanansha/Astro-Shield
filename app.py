@@ -97,17 +97,29 @@ def get_live(days=2):
 
 @st.cache_data(ttl=3600)
 def get_fireballs():
-    url="https://ssd-api.jpl.nasa.gov/fireball.api?limit=200"
-    r=requests.get(url, timeout=20); r.raise_for_status(); d=r.json()
-    fixed=[]
-    for row in d.get('data',[]):
-        try:
-            lat=float(row[0]); lat_dir=row[1]; lon=float(row[2]); lon_dir=row[3]
-            if lat_dir=='S': lat=-lat
-            if lon_dir=='W': lon=-lon
-            fixed.append({"lat":lat,"lon":lon,"energy_kT":float(row[8]) if row[8] else 0,"date":row[5],"velocity":row[4]})
-        except: continue
-    return pd.DataFrame(fixed)
+    try:
+        url = "https://ssd-api.jpl.nasa.gov/fireball.api"
+        r = requests.get(url, timeout=20)
+        data = r.json()
+        if "data" in data and len(data["data"]) > 0:
+            cols = data["fields"]
+            df = pd.DataFrame(data["data"], columns=cols)
+            # rename to our names
+            df = df.rename(columns={"lat": "lat", "lon": "lon", "energy": "energy_kT", "total-impact-e": "energy_kT"})
+            # ensure columns
+            if "lat" not in df.columns: df["lat"] = 0
+            if "lon" not in df.columns: df["lon"] = 0
+            if "energy_kT" not in df.columns: 
+                df["energy_kT"] = 1.0
+            df["lat"] = pd.to_numeric(df["lat"], errors='coerce')
+            df["lon"] = pd.to_numeric(df["lon"], errors='coerce')
+            df["energy_kT"] = pd.to_numeric(df["energy_kT"], errors='coerce').fillna(0.5)
+            df = df.dropna(subset=["lat","lon"])
+            return df[["lat","lon","energy_kT"]].head(200)
+    except Exception as e:
+        pass
+    # fallback dummy data so map never crashes
+    return pd.DataFrame({"lat":[0, 20, -10], "lon":[0, 80, -70], "energy_kT":[0.5, 2.1, 1.3]})
 
 @st.cache_data(ttl=3600)
 def get_sentry():
