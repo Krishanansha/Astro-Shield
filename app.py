@@ -186,11 +186,11 @@ with tab1:
             st.plotly_chart(fig, use_container_width=True)
     with right:
         if not df_live.empty:
-            df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
-            df_live['Hit_Prob_%'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
-            df_live['Display_Dist'] = df_live.apply(format_dist, axis=1)
-            fig2 = px.bar(df_live.sort_values("Hit_Prob_%", ascending=False).head(10), x="Hit_Prob_%", y="Name", orientation='h', color="Hazardous", title="Relative Closeness Score")
-            st.plotly_chart(fig2, use_container_width=True)
+                    df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
+                    df_live['Closeness_Score'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
+                    df_live['Display_Dist'] = df_live.apply(format_dist, axis=1)
+                    fig2 = px.bar(df_live.sort_values("Closeness_Score", ascending=False).head(10), x="Closeness_Score", y="Name", orientation='h', title="Relative Closeness Score (100 = Closest Today)", color="Hazardous")
+                    st.plotly_chart(fig2, use_container_width=True)
     st.dataframe(df_live, use_container_width=True, column_config={"JPL_URL": st.column_config.LinkColumn("Details", display_text="Open JPL"), "Hit_Prob_%": st.column_config.ProgressColumn(min_value=0, max_value=100)}, hide_index=True)
 
 with tab2:
