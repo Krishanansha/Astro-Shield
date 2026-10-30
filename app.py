@@ -106,7 +106,7 @@ st.sidebar.header("Kaggle Database")
 kaggle_df, haz_count = load_kaggle_and_train()
 if kaggle_df is not None:
     st.sidebar.metric("Total in Kaggle DB", len(kaggle_df))
-    st.sidebar.write(kaggle_df.head(5))
+    st.sidebar.dataframe(kaggle_df,height=400,use_container_width=True)
     # Show ML insight
     if 'Estimated Diameter (km)' in kaggle_df.columns or 'Est Dia in KM' in kaggle_df.columns:
         st.sidebar.info("AI Model: Trained on 40k asteroids to predict Hazardous")
