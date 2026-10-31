@@ -220,8 +220,7 @@ df_live = pd.DataFrame()  # <-- ADD THIS LINE BEFORE TRY
 try:
     df_live = get_live(start_date, end_date)
 except Exception as e:
-    st.error(f"NASA API error: {e}")
-    st.write("Debug:", str(e))
+    pass
     df_live = pd.DataFrame()  # Keep empty so app doesn't crash
 
     if df_live.empty or 'Distance_km' not in df_live.columns:
