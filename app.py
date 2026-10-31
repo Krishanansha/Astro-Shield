@@ -219,7 +219,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 Live Monitor", "🤖 AI + Probabil
 
 with tab1:
        left, right = st.columns([2,1])
-    with left:
+       with left:
            if not df_live.empty:
                y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
                df_plot = df_live.copy()
