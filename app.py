@@ -216,11 +216,11 @@ enable_whatsapp = st.sidebar.checkbox("WhatsApp Alert")
 enable_sound = st.sidebar.checkbox("Sound Alert", value=True)
 
 # --- METRICS ---
-    df_live = pd.DataFrame()
-    try:
-        df_live = get_live(start_date, end_date)
-    except Exception as e:
-        pass
+df_live = pd.DataFrame()
+try:
+    df_live = get_live(start_date, end_date)
+except Exception as e:
+    pass
 
     # --- FIXED EMPTY HANDLING - NO HARDCODED METRICS HERE ---
     if df_live.empty or 'Distance_km' not in df_live.columns:
