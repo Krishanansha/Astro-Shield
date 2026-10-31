@@ -84,27 +84,38 @@ model_info, model_err = train_ai()
 @st.cache_data(ttl=3600)
 def get_live(start_date, end_date):
     url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={start_date}&end_date={end_date}&api_key={NASA_KEY}"
-    r = requests.get(url, timeout=20); r.raise_for_status(); data = r.json()
-    rows=[]
+    r = requests.get(url, timeout=20)
+    r.raise_for_status()
+    data = r.json()
+    rows = []
     for dk in data['near_earth_objects']:
         for neo in data['near_earth_objects'][dk]:
-            ca = neo['close_approach_data'][0]
-            rows.append({
-                "id": neo['id'], "Name": neo['name'],
-                "Diameter (m)": neo['estimated_diameter']['meters']['estimated_diameter_max'],
-                "Distance_km": float(ca['miss_distance']['kilometers']),
-                "Distance_LD": float(ca['miss_distance']['lunar']),
-                "Distance_AU": float(ca['miss_distance']['astronomical']),
-                "Distance_Miles": float(ca['miss_distance']['miles']),
-                "Velocity_kms": float(ca['relative_velocity']['kilometers_per_second']),
-                "Velocity_kmh": float(ca['relative_velocity']['kilometers_per_second'])*3600,
-                "Velocity_mph": float(ca['relative_velocity']['kilometers_per_second'])*2236.94,
-                "Velocity_ms": float(ca['relative_velocity']['kilometers_per_second'])*1000,
-                "Hazardous": neo['is_potentially_hazardous_asteroid'],
-                "Date": dk, "JPL_URL": neo['nasa_jpl_url']
-            })
+            # FIX: Loop all approaches and pick ONLY those in your selected date range
+            for ca in neo['close_approach_data']:
+                try:
+                    ca_date = datetime.strptime(ca['close_approach_date'], "%Y-%m-%d").date()
+                except:
+                    continue
+                # ONLY count if this close approach date is inside user's selected range
+                if start_date <= ca_date <= end_date:
+                    rows.append({
+                        "id": neo['id'], "Name": neo['name'],
+                        "Diameter (m)": neo['estimated_diameter']['meters']['estimated_diameter_max'],
+                        "Distance_km": float(ca['miss_distance']['kilometers']),
+                        "Distance_LD": float(ca['miss_distance']['lunar']),
+                        "Distance_AU": float(ca['miss_distance']['astronomical']),
+                        "Distance_Miles": float(ca['miss_distance']['miles']),
+                        "Velocity_kms": float(ca['relative_velocity']['kilometers_per_second']),
+                        "Velocity_kmh": float(ca['relative_velocity']['kilometers_per_hour']),
+                        "Velocity_mph": float(ca['relative_velocity']['miles_per_hour']),
+                        "Velocity_ms": float(ca['relative_velocity']['kilometers_per_second'])*1000,
+                        "Hazardous": neo['is_potentially_hazardous_asteroid'],
+                        "Date": ca['close_approach_date'],
+                        "JPL_URL": neo['nasa_jpl_url']
+                    })
+    if not rows:
+        return pd.DataFrame([])
     return pd.DataFrame(rows).sort_values("Distance_km")
-
 @st.cache_data(ttl=3600)
 def get_fireballs():
     try:
