@@ -83,6 +83,8 @@ model_info, model_err = train_ai()
 # --- LIVE DATA ---
 @st.cache_data(ttl=3600)
 def get_live(start_date, end_date):
+    # Filter to match NASA browser view (only < 0.05 AU like ESA/JPL Close Approach page)
+    df_live = df_live[df_live['Distance_AU'] < 0.05].copy()
     url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={start_date}&end_date={end_date}&api_key={NASA_KEY}"
     r = requests.get(url, timeout=20)
     r.raise_for_status()
