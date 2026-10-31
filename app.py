@@ -88,6 +88,9 @@ def get_live(start_date, end_date):
                 "Distance_AU": float(ca['miss_distance']['astronomical']),
                 "Distance_Miles": float(ca['miss_distance']['miles']),
                 "Velocity_kms": float(ca['relative_velocity']['kilometers_per_second']),
+                "Velocity_kmh": float(ca['relative_velocity']['kilometers_per_second'])*3600,
+                "Velocity_mph": float(ca['relative_velocity']['kilometers_per_second'])*2236.94,
+                "Velocity_ms": float(ca['relative_velocity']['kilometers_per_second'])*1000,
                 "Hazardous": neo['is_potentially_hazardous_asteroid'],
                 "Date": dk, "JPL_URL": neo['nasa_jpl_url']
             })
@@ -161,22 +164,29 @@ def format_dist(row):
     elif unit=="AU": return f"{row['Distance_AU']:.4f} AU"
     else: return f"{row['Distance_Miles']:,.0f} mi"
 
-def format_speed(row):
-    # Your NASA data is in km/s — check column name: Velocity_kms or Speed
-    v_kms = row.get('Velocity_kms', row.get('Speed_kms', row.get('Velocity', 0)))
+def format_speed_value(v_kms):
     try:
         v = float(v_kms)
     except:
-        return f"{v_kms} km/s"
-        
+        return f"{v_kms}"
     if speed_unit == "km/h":
         return f"{v*3600:.0f} km/h"
     elif speed_unit == "mph":
         return f"{v*2236.94:.0f} mph"
     elif speed_unit == "m/s":
         return f"{v*1000:.0f} m/s"
-    else: # km/s
-        return f"{v:.2f} km/s"
+    else:
+        return f"{v:.1f} km/s"
+
+def format_speed(row):
+    v = row.get('Velocity_kms', 0)
+    return format_speed_value(v)
+
+def convert_speed_graph(v):
+    if speed_unit == "km/h": return v*3600
+    if speed_unit == "mph": return v*2236.94
+    if speed_unit == "m/s": return v*1000
+    return v
 
 st.sidebar.info("PHA = orbit <7.5M km (19.5 LD) + size>140m. Not impact today.")
 if model_info: st.sidebar.success(f"AI Active: {model_info[2]}\nAcc: {model_info[3]:.1%} | Rows: {len(model_info[4])}")
@@ -221,8 +231,15 @@ with tab1:
             return v
         df_plot['Speed_Converted'] = df_plot['Velocity_kms'].apply(convert_speed_graph)
         df_plot['Speed_Label'] = df_plot['Velocity_kms'].apply(format_speed_value)
-        fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data={"Speed_Label":True, "Velocity_kms":False, "Diameter (m)":True}, log_y=True, title=f"Size = Speed ({speed_unit})")
-        st.plotly_chart(fig, use_container_width=True)
+               fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data={"Speed_Label":True, "Velocity_kms":False, "Diameter (m)":True}, log_y=True, title=f"Size = Speed ({speed_unit})")
+               st.plotly_chart(fig, use_container_width=True)
+         # --- NEW: Top 10 Fastest in selected speed unit ---
+        df_top10 = df_plot.sort_values("Velocity_kms", ascending=False).head(10)
+        fig_speed = px.bar(df_top10, x="Name", y="Speed_Converted", color="Hazardous", text="Speed_Label", title=f"Top 10 Fastest Asteroids - Speed in {speed_unit}")
+        fig_speed.update_layout(yaxis_title=f"Speed ({speed_unit})", xaxis_title="Asteroid")
+        fig_speed.update_traces(textposition='outside')
+        st.plotly_chart(fig_speed, use_container_width=True)
+
     with right:
         if not df_live.empty:
                     df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
