@@ -19,7 +19,10 @@ st.set_page_config(
 # --- HEADER WITH LOGO ---
 col_logo, col_title = st.columns([1, 6])
 with col_logo:
-    st.image("logo.png", width=120)
+    try:
+        st.image("logo.png", width=120)
+    except:
+        st.write("🌌")
 with col_title:
     st.markdown("""
         <div style="padding-top: 12px;">
@@ -90,7 +93,6 @@ def get_live(start_date, end_date):
     for dk in data['near_earth_objects']:
         for neo in data['near_earth_objects'][dk]:
             for ca in neo['close_approach_data']:
-                # ONLY keep approaches within selected range (fixes slider)
                 ca_date = ca['close_approach_date'][:10]
                 if str(start_date) <= ca_date <= str(end_date):
                     rows.append({
@@ -110,9 +112,10 @@ def get_live(start_date, end_date):
                     })
     df_live = pd.DataFrame(rows)
     if not df_live.empty:
-        df_live = df_live[df_live['Distance_AU'] < 0.05].copy() # filter AFTER building
+        df_live = df_live[df_live['Distance_AU'] < 0.05].copy()
         df_live = df_live.sort_values("Distance_km")
     return df_live
+
 @st.cache_data(ttl=3600)
 def get_fireballs():
     try:
@@ -122,9 +125,7 @@ def get_fireballs():
         if "data" in data and len(data["data"]) > 0:
             cols = data["fields"]
             df = pd.DataFrame(data["data"], columns=cols)
-            # rename to our names
             df = df.rename(columns={"lat": "lat", "lon": "lon", "energy": "energy_kT", "total-impact-e": "energy_kT"})
-            # ensure columns
             if "lat" not in df.columns: df["lat"] = 0
             if "lon" not in df.columns: df["lon"] = 0
             if "energy_kT" not in df.columns: 
@@ -136,7 +137,6 @@ def get_fireballs():
             return df[["lat","lon","energy_kT"]].head(200)
     except Exception as e:
         pass
-    # fallback dummy data so map never crashes
     return pd.DataFrame({"lat":[0, 20, -10], "lon":[0, 80, -70], "energy_kT":[0.5, 2.1, 1.3]})
 
 @st.cache_data(ttl=3600)
@@ -162,14 +162,10 @@ speed_unit = st.sidebar.selectbox("Speed Unit", ["km/s", "km/h", "mph", "m/s"], 
 alert_km = st.sidebar.slider("Alert threshold (km)", 50000, 50000000, 7500000, step=50000)
 st.sidebar.write(f"≈ {alert_km/384400:.1f} LD | {alert_km/149597870:.4f} AU")
 st.sidebar.markdown("---")
-from datetime import datetime, timedelta
 days_range = st.sidebar.slider("🗓️ Show data for next (days)", 1, 7, 7)
 start_date = datetime.now().date()
 end_date = start_date + timedelta(days=days_range-1)
 
-label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
-
-# Keep caption in main area
 if days_range==1:
     st.caption(f"📅 Showing close approaches for TODAY: {start_date}")
 else:
@@ -186,18 +182,13 @@ def format_speed_value(v_kms):
         v = float(v_kms)
     except:
         return f"{v_kms}"
-    if speed_unit == "km/h":
-        return f"{v*3600:.0f} km/h"
-    elif speed_unit == "mph":
-        return f"{v*2236.94:.0f} mph"
-    elif speed_unit == "m/s":
-        return f"{v*1000:.0f} m/s"
-    else:
-        return f"{v:.1f} km/s"
+    if speed_unit == "km/h": return f"{v*3600:.0f} km/h"
+    elif speed_unit == "mph": return f"{v*2236.94:.0f} mph"
+    elif speed_unit == "m/s": return f"{v*1000:.0f} m/s"
+    else: return f"{v:.1f} km/s"
 
 def format_speed(row):
-    v = row.get('Velocity_kms', 0)
-    return format_speed_value(v)
+    return format_speed_value(row.get('Velocity_kms', 0))
 
 def convert_speed_graph(v):
     if speed_unit == "km/h": return v*3600
@@ -216,118 +207,119 @@ df_live = pd.DataFrame()
 try:
     df_live = get_live(start_date, end_date)
 except Exception as e:
-    pass
+    st.error(f"NASA API error: {e}")
+    df_live = pd.DataFrame()
 
-    # --- FIXED EMPTY HANDLING - NO HARDCODED METRICS HERE ---
-    if df_live.empty or 'Distance_km' not in df_live.columns:
-        # Show UK9 only if selected range includes Oct 31 2026
-        if start_date <= datetime(2026,10,31).date() <= end_date:
-            df_live = pd.DataFrame([{
-                "id": "2025UK9", "Name": "2025 UK9 (ESA)", "Diameter (m)": 4.5,
-                "Distance_km": 371116, "Distance_LD": 0.965, "Distance_AU": 0.002481,
-                "Distance_Miles": 230600, "Velocity_kms": 7.8, "Velocity_kmh": 28080,
-                "Velocity_mph": 17448, "Hazardous": False, "Date": "2026-10-31",
-                "JPL_URL": "https://neo.ssa.esa.int/"
-            }])
-            st.info(f"NASA feed empty - Showing ESA confirmed: 2025 UK9 at 371,116 km for {start_date}")
-        else:
-            st.warning(f"No asteroids for {start_date} to {end_date} - NASA DEMO_KEY limit. Add real NASA_KEY in Streamlit Secrets")
-
-    if df_live.empty:
-        close_df = pd.DataFrame()
+if df_live.empty or 'Distance_km' not in df_live.columns:
+    if start_date <= datetime(2026,10,31).date() <= end_date:
+        df_live = pd.DataFrame([{
+            "id": "2025UK9", "Name": "2025 UK9 (ESA)", "Diameter (m)": 4.5,
+            "Distance_km": 371116, "Distance_LD": 0.965, "Distance_AU": 0.002481,
+            "Distance_Miles": 230600, "Velocity_kms": 7.8, "Velocity_kmh": 28080,
+            "Velocity_mph": 17448, "Hazardous": False, "Date": "2026-10-31",
+            "JPL_URL": "https://neo.ssa.esa.int/"
+        }])
+        st.info(f"NASA feed empty - Showing ESA confirmed: 2025 UK9 at 371,116 km for {start_date}")
     else:
-        label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
-        closest_display = format_dist(df_live.iloc[0])
-        c1,c2,c3,c4 = st.columns(4)
-        c1.metric(label_text, len(df_live))
-        c2.metric("Hazardous", int(df_live['Hazardous'].sum()))
-        c3.metric("Closest", closest_display)
-        c4.metric("Fastest", format_speed_value(df_live['Velocity_kms'].max()))
-        close_df = df_live[df_live['Distance_km'] < alert_km]
-        if not close_df.empty:
-            st.error(f"🚨 {len(close_df)} object(s) closer than {alert_km:,} km")
-            if enable_sound: 
-                play_sound()
-                st.toast("Dangerous approach!", icon="🚨")
-            if enable_whatsapp and send_whatsapp(f"ASTRO-SHIELD ALERT: {len(close_df)} asteroids within {alert_km} km"):
-                st.sidebar.success("WhatsApp sent")
-        else:
-            st.success(f"✅ All clear - no objects within {alert_km:,} km")
+        st.warning(f"No asteroids for {start_date} to {end_date} - NASA DEMO_KEY limit. Add real NASA_KEY in Streamlit Secrets")
 
-    # --- TABS ---
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🛰️ Live Monitor", "🤖 AI + Probability", "📍 Past Impacts Map", "☄️ 100-Year Risk (Sentry)", "📊 Stats"])
+if df_live.empty:
+    close_df = pd.DataFrame()
+    st.warning("No live data to display")
+else:
+    label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
+    closest_display = format_dist(df_live.iloc[0])
+    c1,c2,c3,c4 = st.columns(4)
+    c1.metric(label_text, len(df_live))
+    c2.metric("Hazardous", int(df_live['Hazardous'].sum()))
+    c3.metric("Closest", closest_display)
+    c4.metric("Fastest", format_speed_value(df_live['Velocity_kms'].max()))
+    close_df = df_live[df_live['Distance_km'] < alert_km]
+    if not close_df.empty:
+        st.error(f"🚨 {len(close_df)} object(s) closer than {alert_km:,} km")
+        if enable_sound: 
+            play_sound()
+            st.toast("Dangerous approach!", icon="🚨")
+        if enable_whatsapp and send_whatsapp(f"ASTRO-SHIELD ALERT: {len(close_df)} asteroids within {alert_km} km"):
+            st.sidebar.success("WhatsApp sent")
+    else:
+        st.success(f"✅ All clear - no objects within {alert_km:,} km")
 
-    with tab1:
-        left, right = st.columns([2,1])
-        with left:
-            if not df_live.empty:
-                y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
-                df_plot = df_live.copy()
-                def convert_speed_graph(v):
-                    if speed_unit == "km/h": return v*3600
-                    if speed_unit == "mph": return v*2236.94
-                    if speed_unit == "m/s": return v*1000
-                    return v
-                df_plot['Speed_Converted'] = df_plot['Velocity_kms'].apply(convert_speed_graph)
-                df_plot['Speed_Label'] = df_plot['Velocity_kms'].apply(format_speed_value)
-                fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data=["Speed_Label"], log_y=True, title=f"Live - {days_range} days")
-                st.plotly_chart(fig, use_container_width=True)
-                df_top10 = df_plot.sort_values("Velocity_kms", ascending=False).head(10)
-                fig_speed = px.bar(df_top10, x="Name", y="Speed_Converted", color="Hazardous", text="Speed_Label", title="Top 10 Fastest")
-                fig_speed.update_layout(yaxis_title=f"Speed ({speed_unit})", xaxis_title="Asteroid")
-                fig_speed.update_traces(textposition='outside')
-                st.plotly_chart(fig_speed, use_container_width=True)
-        with right:
-            if not df_live.empty:
-                df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
-                df_live['Closeness_Score'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
-                df_live['Display_Dist'] = df_live.apply(format_dist, axis=1)
-                fig2 = px.bar(df_live.sort_values("Closeness_Score", ascending=False).head(10), x="Closeness_Score", y="Name", orientation='h', title="Closeness Score")
-                st.plotly_chart(fig2, use_container_width=True)
-                st.dataframe(df_live, use_container_width=True, column_config={"JPL_URL": st.column_config.LinkColumn("Details", display_text="Open")})
-    with tab2:
-        if model_info:
-           st.write(f"Trained on `{model_info[2]}` | Features: {model_info[1]} | Rows: {len(model_info[4])}")
-           st.write(f"Accuracy: **{model_info[3]:.2%}**")
-           fig_imp = px.bar(x=model_info[1], y=model_info[0].feature_importances_, title="Feature Importance")
-           st.plotly_chart(fig_imp, use_container_width=True)
-        else: st.info("Upload neo.csv")
+# --- TABS ---
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🛰️ Live Monitor", "🤖 AI + Probability", "📍 Past Impacts Map", "☄️ 100-Year Risk (Sentry)", "📊 Stats"])
 
-    with tab3:
-        st.subheader("Atmospheric Fireballs - Real Past Impacts (Where it hit)")
-        st.caption("Data: NASA CNEOS Fireball API - 200 latest atmospheric impacts. Size = energy in kT")
-        try:
-           df_fb = get_fireballs()
-           st.map(df_fb, latitude="lat", longitude="lon")
-           st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
-           if not df_fb.empty:
-                 fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="energy_kT", color="energy_kT", projection="natural earth", title="Past Impact Locations (Fireballs)")
-                 st.plotly_chart(fig_fb, use_container_width=True)
-        except Exception as e: st.error(f"Fireball error: {e}")
+with tab1:
+    left, right = st.columns([2,1])
+    with left:
+        if not df_live.empty:
+            y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
+            df_plot = df_live.copy()
+            df_plot['Speed_Converted'] = df_plot['Velocity_kms'].apply(convert_speed_graph)
+            df_plot['Speed_Label'] = df_plot['Velocity_kms'].apply(format_speed_value)
+            fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data=["Speed_Label"], log_y=True, title=f"Live - {days_range} days")
+            st.plotly_chart(fig, use_container_width=True)
+            df_top10 = df_plot.sort_values("Velocity_kms", ascending=False).head(10)
+            fig_speed = px.bar(df_top10, x="Name", y="Speed_Converted", color="Hazardous", text="Speed_Label", title="Top 10 Fastest")
+            fig_speed.update_layout(yaxis_title=f"Speed ({speed_unit})", xaxis_title="Asteroid")
+            fig_speed.update_traces(textposition='outside')
+            st.plotly_chart(fig_speed, use_container_width=True)
+    with right:
+        if not df_live.empty:
+            df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
+            df_live['Closeness_Score'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
+            df_live['Display_Dist'] = df_live.apply(format_dist, axis=1)
+            fig2 = px.bar(df_live.sort_values("Closeness_Score", ascending=False).head(10), x="Closeness_Score", y="Name", orientation='h', title="Closeness Score")
+            st.plotly_chart(fig2, use_container_width=True)
+            st.dataframe(df_live, use_container_width=True, column_config={"JPL_URL": st.column_config.LinkColumn("Details", display_text="Open")})
 
-    with tab4:
-        st.subheader("NASA Sentry - 100 Year Risk List")
-        st.caption("Objects with non-zero impact probability next 100 years. Palermo & Torino scales.")
-        try:
-            df_sentry = get_sentry()
-            if not df_sentry.empty:
-                  st.dataframe(df_sentry, use_container_width=True)
-                  st.warning("Sentry objects are tracked for future orbits. Probability is very low (<0.1%) for most.")
-            else: st.info("No Sentry data or API down.")
-        except Exception as e: st.error(f"Sentry error: {e}")
+with tab2:
+    if model_info:
+        st.write(f"Trained on `{model_info[2]}` | Features: {model_info[1]} | Rows: {len(model_info[4])}")
+        st.write(f"Accuracy: **{model_info[3]:.2%}**")
+        fig_imp = px.bar(x=model_info[1], y=model_info[0].feature_importances_, title="Feature Importance")
+        st.plotly_chart(fig_imp, use_container_width=True)
+    else: 
+        st.info("Upload neo.csv")
 
-    with tab5:
-           st.subheader("Past Data from CSV")
-           if model_info:
-                  df_hist = model_info[4]
-                  st.write(f"Showing all {len(df_hist)} records from {model_info[2]}")
-        # show filters
-    search = st.text_input("Search Name/ID")
-        if search: df_hist = df_hist[df_hist.astype(str).apply(lambda x: x.str.contains(search, case=False)).any(axis=1)]
-                st.dataframe(df_hist, use_container_width=True, height=600)
-                csv = df_hist.to_csv(index=False).encode('utf-8')
-                st.download_button("Download filtered CSV", csv, "filtered.csv", "text/csv")
-        else: st.info("Upload neo.csv to see past data")
+with tab3:
+    st.subheader("Atmospheric Fireballs - Real Past Impacts (Where it hit)")
+    st.caption("Data: NASA CNEOS Fireball API - 200 latest atmospheric impacts. Size = energy in kT")
+    try:
+        df_fb = get_fireballs()
+        st.map(df_fb, latitude="lat", longitude="lon")
+        st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
+        if not df_fb.empty:
+            fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="energy_kT", color="energy_kT", projection="natural earth", title="Past Impact Locations (Fireballs)")
+            st.plotly_chart(fig_fb, use_container_width=True)
+    except Exception as e: 
+        st.error(f"Fireball error: {e}")
+
+with tab4:
+    st.subheader("NASA Sentry - 100 Year Risk List")
+    st.caption("Objects with non-zero impact probability next 100 years. Palermo & Torino scales.")
+    try:
+        df_sentry = get_sentry()
+        if not df_sentry.empty:
+            st.dataframe(df_sentry, use_container_width=True)
+            st.warning("Sentry objects are tracked for future orbits. Probability is very low (<0.1%) for most.")
+        else: 
+            st.info("No Sentry data or API down.")
+    except Exception as e: 
+        st.error(f"Sentry error: {e}")
+
+with tab5:
+    st.subheader("Past Data from CSV")
+    if model_info:
+        df_hist = model_info[4]
+        st.write(f"Showing all {len(df_hist)} records from {model_info[2]}")
+        search = st.text_input("Search Name/ID", key="search_hist_tab5")
+        if search:
+            df_hist = df_hist[df_hist.astype(str).apply(lambda x: x.str.contains(search, case=False)).any(axis=1)]
+        st.dataframe(df_hist, use_container_width=True, height=600)
+        csv = df_hist.to_csv(index=False).encode('utf-8')
+        st.download_button("Download filtered CSV", csv, "filtered.csv", "text/csv")
+    else:
+        st.info("Upload neo.csv to see past data")
 
 st.divider()
 st.markdown(f"**Units:** 1 LD = 384,400 km = 0.00257 AU = 238,855 miles. Selected: {unit}. PHA is orbit potential, not today's risk.")
