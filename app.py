@@ -22,18 +22,6 @@ st.title("🛰️ NEONETRA")
 st.markdown("### AI-Powered Near-Earth Object Early Monitoring")
 st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry")
 st.divider()
-# --- NEW: User Defined Days ---
-from datetime import datetime, timedelta
-days_range = st.slider("🗓️ Show data for next (days)", 1, 7, 1)
-start_date = datetime.now().date()
-end_date = start_date + timedelta(days=days_range-1)
-if days_range==1:
-    st.caption(f"Showing close approaches for TODAY: {start_date}")
-else:
-    st.caption(f"Showing close approaches from {start_date} to {end_date}")
-label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
-# Then your existing NASA call uses these dates
-# Example: get_live_data(start_date, end_date)
 
 NASA_KEY = st.secrets.get("NASA_KEY", "DEMO_KEY")
 
@@ -152,6 +140,19 @@ st.sidebar.header("⚙️ Settings")
 unit = st.sidebar.selectbox("Distance Unit", ["LD (Lunar Distance)", "km", "AU", "Miles"], index=0)
 alert_km = st.sidebar.slider("Alert threshold (km)", 50000, 50000000, 7500000, step=50000)
 st.sidebar.write(f"≈ {alert_km/384400:.1f} LD | {alert_km/149597870:.4f} AU")
+st.sidebar.markdown("---")
+from datetime import datetime, timedelta
+days_range = st.sidebar.slider("🗓️ Show data for next (days)", 1, 7, 1)
+start_date = datetime.now().date()
+end_date = start_date + timedelta(days=days_range-1)
+
+label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
+
+# Keep caption in main area
+if days_range==1:
+    st.caption(f"📅 Showing close approaches for TODAY: {start_date}")
+else:
+    st.caption(f"📅 Showing {days_range} days: {start_date} to {end_date}")
 
 def format_dist(row):
     if "LD" in unit: return f"{row['Distance_LD']:.2f} LD"
