@@ -25,8 +25,10 @@ st.divider()
 # --- NEW: User Defined Days ---
 days_range = st.slider("Show data for next (days)", 1, 7, 2, 
                        help="NASA API allows max 7 days per request. Today = 1, Next 7 days = 7")
-st.caption(f"Showing close approaches for next {days_range} day(s)")
-
+if days_range==1:
+    st.caption(f"Showing close approaches for TODAY: {start_date} - {len(df_live)} objects found")
+else:
+    st.caption(f"Showing close approaches from {start_date} to {end_date} - {len(df_live)} objects found")
 start_date = datetime.now().date()
 end_date = start_date + timedelta(days=days_range-1)
 
