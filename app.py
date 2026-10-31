@@ -314,7 +314,7 @@ except Exception as e:
                   st.dataframe(df_sentry, use_container_width=True)
                   st.warning("Sentry objects are tracked for future orbits. Probability is very low (<0.1%) for most.")
             else: st.info("No Sentry data or API down.")
-    except Exception as e: st.error(f"Sentry error: {e}")
+        except Exception as e: st.error(f"Sentry error: {e}")
 
     with tab5:
            st.subheader("Past Data from CSV")
