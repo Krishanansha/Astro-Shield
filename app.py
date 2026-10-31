@@ -291,7 +291,7 @@ except Exception as e:
            st.write(f"Accuracy: **{model_info[3]:.2%}**")
            fig_imp = px.bar(x=model_info[1], y=model_info[0].feature_importances_, title="Feature Importance")
            st.plotly_chart(fig_imp, use_container_width=True)
-           else: st.info("Upload neo.csv")
+        else: st.info("Upload neo.csv")
 
     with tab3:
         st.subheader("Atmospheric Fireballs - Real Past Impacts (Where it hit)")
