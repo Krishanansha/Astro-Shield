@@ -86,7 +86,7 @@ model_info, model_err = train_ai()
 # --- LIVE DATA ---
 @st.cache_data(ttl=3600)
 def get_live(start_date, end_date):
-    url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={end}&api_key={NASA_KEY}"
+    url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={start_date}&end_date={end_date}&api_key={NASA_KEY}"
     r = requests.get(url, timeout=20); r.raise_for_status(); data = r.json()
     rows=[]
     for dk in data['near_earth_objects']:
