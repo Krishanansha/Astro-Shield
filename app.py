@@ -23,15 +23,15 @@ st.markdown("### AI-Powered Near-Earth Object Early Monitoring")
 st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry")
 st.divider()
 # --- NEW: User Defined Days ---
-days_range = st.slider("Show data for next (days)", 1, 7, 2, 
-                       help="NASA API allows max 7 days per request. Today = 1, Next 7 days = 7")
-if days_range==1:
-    st.caption(f"Showing close approaches for TODAY: {start_date} - {len(df_live)} objects found")
-else:
-    st.caption(f"Showing close approaches from {start_date} to {end_date} - {len(df_live)} objects found")
+from datetime import datetime, timedelta
+days_range = st.slider("🗓️ Show data for next (days)", 1, 7, 1)
 start_date = datetime.now().date()
 end_date = start_date + timedelta(days=days_range-1)
-
+if days_range==1:
+    st.caption(f"Showing close approaches for TODAY: {start_date}")
+else:
+    st.caption(f"Showing close approaches from {start_date} to {end_date}")
+label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
 # Then your existing NASA call uses these dates
 # Example: get_live_data(start_date, end_date)
 
