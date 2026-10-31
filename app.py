@@ -112,7 +112,7 @@ def get_live(start_date, end_date):
                     })
     df_live = pd.DataFrame(rows)
     if not df_live.empty:
-        df_live = df_live[df_live['Distance_AU'] < 0.05].copy()
+        df_live = df_live[df_live['Distance_AU'] < 0.5].copy()
         df_live = df_live.sort_values("Distance_km")
     return df_live
 
