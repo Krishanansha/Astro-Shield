@@ -237,7 +237,7 @@ with tab1:
                fig_speed.update_layout(yaxis_title=f"Speed ({speed_unit})", xaxis_title="Asteroid")
                fig_speed.update_traces(textposition='outside')
                st.plotly_chart(fig_speed, use_container_width=True)
-    with right:
+       with right:
           if not df_live.empty:
               df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
               df_live['Closeness_Score'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
