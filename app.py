@@ -285,49 +285,49 @@ except Exception as e:
                 fig2 = px.bar(df_live.sort_values("Closeness_Score", ascending=False).head(10), x="Closeness_Score", y="Name", orientation='h', title="Closeness Score")
                 st.plotly_chart(fig2, use_container_width=True)
                 st.dataframe(df_live, use_container_width=True, column_config={"JPL_URL": st.column_config.LinkColumn("Details", display_text="Open")})
-with tab2:
-    if model_info:
-        st.write(f"Trained on `{model_info[2]}` | Features: {model_info[1]} | Rows: {len(model_info[4])}")
-        st.write(f"Accuracy: **{model_info[3]:.2%}**")
-        fig_imp = px.bar(x=model_info[1], y=model_info[0].feature_importances_, title="Feature Importance")
-        st.plotly_chart(fig_imp, use_container_width=True)
-    else: st.info("Upload neo.csv")
+    with tab2:
+        if model_info:
+           st.write(f"Trained on `{model_info[2]}` | Features: {model_info[1]} | Rows: {len(model_info[4])}")
+           st.write(f"Accuracy: **{model_info[3]:.2%}**")
+           fig_imp = px.bar(x=model_info[1], y=model_info[0].feature_importances_, title="Feature Importance")
+           st.plotly_chart(fig_imp, use_container_width=True)
+           else: st.info("Upload neo.csv")
 
-with tab3:
-    st.subheader("Atmospheric Fireballs - Real Past Impacts (Where it hit)")
-    st.caption("Data: NASA CNEOS Fireball API - 200 latest atmospheric impacts. Size = energy in kT")
-    try:
-        df_fb = get_fireballs()
-        st.map(df_fb, latitude="lat", longitude="lon")
-        st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
-        if not df_fb.empty:
-            fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="energy_kT", color="energy_kT", projection="natural earth", title="Past Impact Locations (Fireballs)")
-            st.plotly_chart(fig_fb, use_container_width=True)
-    except Exception as e: st.error(f"Fireball error: {e}")
+    with tab3:
+        st.subheader("Atmospheric Fireballs - Real Past Impacts (Where it hit)")
+        st.caption("Data: NASA CNEOS Fireball API - 200 latest atmospheric impacts. Size = energy in kT")
+        try:
+           df_fb = get_fireballs()
+           st.map(df_fb, latitude="lat", longitude="lon")
+           st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
+           if not df_fb.empty:
+                 fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="energy_kT", color="energy_kT", projection="natural earth", title="Past Impact Locations (Fireballs)")
+                  st.plotly_chart(fig_fb, use_container_width=True)
+        except Exception as e: st.error(f"Fireball error: {e}")
 
-with tab4:
-    st.subheader("NASA Sentry - 100 Year Risk List")
-    st.caption("Objects with non-zero impact probability next 100 years. Palermo & Torino scales.")
-    try:
-        df_sentry = get_sentry()
-        if not df_sentry.empty:
-            st.dataframe(df_sentry, use_container_width=True)
-            st.warning("Sentry objects are tracked for future orbits. Probability is very low (<0.1%) for most.")
-        else: st.info("No Sentry data or API down.")
+    with tab4:
+        st.subheader("NASA Sentry - 100 Year Risk List")
+        st.caption("Objects with non-zero impact probability next 100 years. Palermo & Torino scales.")
+        try:
+            df_sentry = get_sentry()
+            if not df_sentry.empty:
+                  st.dataframe(df_sentry, use_container_width=True)
+                  st.warning("Sentry objects are tracked for future orbits. Probability is very low (<0.1%) for most.")
+            else: st.info("No Sentry data or API down.")
     except Exception as e: st.error(f"Sentry error: {e}")
 
-with tab5:
-    st.subheader("Past Data from CSV")
-    if model_info:
-        df_hist = model_info[4]
-        st.write(f"Showing all {len(df_hist)} records from {model_info[2]}")
+    with tab5:
+           st.subheader("Past Data from CSV")
+           if model_info:
+                  df_hist = model_info[4]
+                  st.write(f"Showing all {len(df_hist)} records from {model_info[2]}")
         # show filters
-        search = st.text_input("Search Name/ID")
-        if search: df_hist = df_hist[df_hist.astype(str).apply(lambda x: x.str.contains(search, case=False)).any(axis=1)]
-        st.dataframe(df_hist, use_container_width=True, height=600)
-        csv = df_hist.to_csv(index=False).encode('utf-8')
-        st.download_button("Download filtered CSV", csv, "filtered.csv", "text/csv")
-    else: st.info("Upload neo.csv to see past data")
+            search = st.text_input("Search Name/ID")
+             if search: df_hist = df_hist[df_hist.astype(str).apply(lambda x: x.str.contains(search, case=False)).any(axis=1)]
+                 st.dataframe(df_hist, use_container_width=True, height=600)
+                 csv = df_hist.to_csv(index=False).encode('utf-8')
+                   st.download_button("Download filtered CSV", csv, "filtered.csv", "text/csv")
+             else: st.info("Upload neo.csv to see past data")
 
 st.divider()
 st.markdown(f"**Units:** 1 LD = 384,400 km = 0.00257 AU = 238,855 miles. Selected: {unit}. PHA is orbit potential, not today's risk.")
