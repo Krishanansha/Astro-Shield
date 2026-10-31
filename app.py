@@ -83,9 +83,9 @@ model_info, model_err = train_ai()
 
 # --- LIVE DATA ---
 @st.cache_data(ttl=3600)
-def get_live(days=2):
+def get_live():
     today = datetime.utcnow().date()
-    end = today + timedelta(days=days)
+    end = today + timedelta(days=days_range-1)
     url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={end}&api_key={NASA_KEY}"
     r = requests.get(url, timeout=20); r.raise_for_status(); data = r.json()
     rows=[]
@@ -166,13 +166,13 @@ enable_whatsapp = st.sidebar.checkbox("WhatsApp Alert")
 enable_sound = st.sidebar.checkbox("Sound Alert", value=True)
 
 # --- METRICS ---
-try: df_live = get_live(days=2)
+try: df_live = get_live()
 except Exception as e: st.error(f"NASA API error: {e} - Check Secrets"); st.stop()
 
 if not df_live.empty:
     c1,c2,c3,c4 = st.columns(4)
     closest_display = format_dist(df_live.iloc[0])
-    c1.metric("Objects (2 days)", len(df_live))
+    c1.metric(label_text, len(df_live))
     c2.metric("Hazardous", int(df_live['Hazardous'].sum()))
     c3.metric("Closest", closest_display)
     c4.metric("Fastest", f"{df_live['Velocity_kms'].max():.1f} km/s")
