@@ -219,9 +219,9 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["📡 Live Monitor", "🤖 AI + Probabil
 
 with tab1:
     left, right = st.columns([2,1])
-    with left:
-        if not df_live.empty:
-                    y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
+   with left:
+    if not df_live.empty:
+        y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
         # Convert speed for display based on user selection
         df_plot = df_live.copy()
         def convert_speed_graph(v):
@@ -231,19 +231,19 @@ with tab1:
             return v
         df_plot['Speed_Converted'] = df_plot['Velocity_kms'].apply(convert_speed_graph)
         df_plot['Speed_Label'] = df_plot['Velocity_kms'].apply(format_speed_value)
-               fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data={"Speed_Label":True, "Velocity_kms":False, "Diameter (m)":True}, log_y=True, title=f"Size = Speed ({speed_unit})")
-               st.plotly_chart(fig, use_container_width=True)
-         # --- NEW: Top 10 Fastest in selected speed unit ---
+        fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data={"Speed_Label":True}, log_y=True, title=f"Size = Speed ({speed_unit})")
+        st.plotly_chart(fig, use_container_width=True)
+        # NEW: Top 10 Fastest in selected speed unit
         df_top10 = df_plot.sort_values("Velocity_kms", ascending=False).head(10)
         fig_speed = px.bar(df_top10, x="Name", y="Speed_Converted", color="Hazardous", text="Speed_Label", title=f"Top 10 Fastest Asteroids - Speed in {speed_unit}")
         fig_speed.update_layout(yaxis_title=f"Speed ({speed_unit})", xaxis_title="Asteroid")
         fig_speed.update_traces(textposition='outside')
         st.plotly_chart(fig_speed, use_container_width=True)
 
-    with right:
-        if not df_live.empty:
-                    df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
-                    df_live['Closeness_Score'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
+with right:
+    if not df_live.empty:
+        df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
+        df_live['Closeness_Score'] = (df_live['Risk_Score']/df_live['Risk_Score'].max()*100).round(1)
                     df_live['Display_Dist'] = df_live.apply(format_dist, axis=1)
                     fig2 = px.bar(df_live.sort_values("Closeness_Score", ascending=False).head(10), x="Closeness_Score", y="Name", orientation='h', title="Relative Closeness Score (100 = Closest Today)", color="Hazardous")
                     st.plotly_chart(fig2, use_container_width=True)
