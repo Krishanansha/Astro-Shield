@@ -322,11 +322,11 @@ except Exception as e:
                   df_hist = model_info[4]
                   st.write(f"Showing all {len(df_hist)} records from {model_info[2]}")
         # show filters
-            search = st.text_input("Search Name/ID")
-             if search: df_hist = df_hist[df_hist.astype(str).apply(lambda x: x.str.contains(search, case=False)).any(axis=1)]
-                 st.dataframe(df_hist, use_container_width=True, height=600)
-                 csv = df_hist.to_csv(index=False).encode('utf-8')
-                   st.download_button("Download filtered CSV", csv, "filtered.csv", "text/csv")
+               search = st.text_input("Search Name/ID")
+                     if search: df_hist = df_hist[df_hist.astype(str).apply(lambda x: x.str.contains(search, case=False)).any(axis=1)]
+                           st.dataframe(df_hist, use_container_width=True, height=600)
+                           csv = df_hist.to_csv(index=False).encode('utf-8')
+                           st.download_button("Download filtered CSV", csv, "filtered.csv", "text/csv")
              else: st.info("Upload neo.csv to see past data")
 
 st.divider()
