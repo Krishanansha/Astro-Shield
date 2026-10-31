@@ -138,6 +138,7 @@ def get_sentry():
 # --- SIDEBAR + UNITS ---
 st.sidebar.header("⚙️ Settings")
 unit = st.sidebar.selectbox("Distance Unit", ["LD (Lunar Distance)", "km", "AU", "Miles"], index=0)
+speed_unit = st.sidebar.selectbox("Speed Unit", ["km/s", "km/h", "mph", "m/s"], index=0)
 alert_km = st.sidebar.slider("Alert threshold (km)", 50000, 50000000, 7500000, step=50000)
 st.sidebar.write(f"≈ {alert_km/384400:.1f} LD | {alert_km/149597870:.4f} AU")
 st.sidebar.markdown("---")
@@ -160,6 +161,23 @@ def format_dist(row):
     elif unit=="AU": return f"{row['Distance_AU']:.4f} AU"
     else: return f"{row['Distance_Miles']:,.0f} mi"
 
+def format_speed(row):
+    # Your NASA data is in km/s — check column name: Velocity_kms or Speed
+    v_kms = row.get('Velocity_kms', row.get('Speed_kms', row.get('Velocity', 0)))
+    try:
+        v = float(v_kms)
+    except:
+        return f"{v_kms} km/s"
+        
+    if speed_unit == "km/h":
+        return f"{v*3600:.0f} km/h"
+    elif speed_unit == "mph":
+        return f"{v*2236.94:.0f} mph"
+    elif speed_unit == "m/s":
+        return f"{v*1000:.0f} m/s"
+    else: # km/s
+        return f"{v:.2f} km/s"
+
 st.sidebar.info("PHA = orbit <7.5M km (19.5 LD) + size>140m. Not impact today.")
 if model_info: st.sidebar.success(f"AI Active: {model_info[2]}\nAcc: {model_info[3]:.1%} | Rows: {len(model_info[4])}")
 else: st.sidebar.warning(model_err)
@@ -177,7 +195,7 @@ if not df_live.empty:
     c1.metric(label_text, len(df_live))
     c2.metric("Hazardous", int(df_live['Hazardous'].sum()))
     c3.metric("Closest", closest_display)
-    c4.metric("Fastest", f"{df_live['Velocity_kms'].max():.1f} km/s")
+    c4.metric("Fastest", format_speed_value(df_live['Velocity_kms'].max()))
 
 close_df = df_live[df_live['Distance_km'] < alert_km]
 if not close_df.empty:
@@ -193,9 +211,18 @@ with tab1:
     left, right = st.columns([2,1])
     with left:
         if not df_live.empty:
-            y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
-            fig = px.scatter(df_live, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", log_y=True, title=f"Distance ({unit}) vs Size")
-            st.plotly_chart(fig, use_container_width=True)
+                    y_col = "Distance_km" if unit=="km" else "Distance_LD" if "LD" in unit else "Distance_AU" if unit=="AU" else "Distance_Miles"
+        # Convert speed for display based on user selection
+        df_plot = df_live.copy()
+        def convert_speed_graph(v):
+            if speed_unit == "km/h": return v*3600
+            if speed_unit == "mph": return v*2236.94
+            if speed_unit == "m/s": return v*1000
+            return v
+        df_plot['Speed_Converted'] = df_plot['Velocity_kms'].apply(convert_speed_graph)
+        df_plot['Speed_Label'] = df_plot['Velocity_kms'].apply(format_speed_value)
+        fig = px.scatter(df_plot, x=y_col, y="Diameter (m)", size="Velocity_kms", color="Hazardous", hover_name="Name", hover_data={"Speed_Label":True, "Velocity_kms":False, "Diameter (m)":True}, log_y=True, title=f"Size = Speed ({speed_unit})")
+        st.plotly_chart(fig, use_container_width=True)
     with right:
         if not df_live.empty:
                     df_live['Risk_Score'] = (1/df_live['Distance_LD']) * np.log1p(df_live['Diameter (m)'])
