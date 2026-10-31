@@ -22,6 +22,16 @@ st.title("🛰️ NEONETRA")
 st.markdown("### AI-Powered Near-Earth Object Early Monitoring")
 st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry")
 st.divider()
+# --- NEW: User Defined Days ---
+days_range = st.slider("Show data for next (days)", 1, 7, 2, 
+                       help="NASA API allows max 7 days per request. Today = 1, Next 7 days = 7")
+st.caption(f"Showing close approaches for next {days_range} day(s)")
+
+start_date = datetime.now().date()
+end_date = start_date + timedelta(days=days_range-1)
+
+# Then your existing NASA call uses these dates
+# Example: get_live_data(start_date, end_date)
 
 NASA_KEY = st.secrets.get("NASA_KEY", "DEMO_KEY")
 
