@@ -8,7 +8,7 @@ import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-# --- PAGE CONFIG WITH LOGO AS FAVICON ---
+# --- PAGE CONFIG ---
 st.set_page_config(
     page_title="NEONETRA - AI-Powered NEO Monitor",
     page_icon="logo.png",
@@ -16,32 +16,20 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- LOGO HEADER AT TOP (ISRO/NASA Style) ---
-col_logo, col_title, col_space = st.columns([1, 4, 1])
+# --- HEADER WITH LOGO ---
+col_logo, col_title = st.columns([1, 6])
 with col_logo:
-    st.image("logo.png", width=130)
+    st.image("logo.png", width=120)
 with col_title:
     st.markdown("""
-        <div style="padding-top: 15px;">
+        <div style="padding-top: 12px;">
             <h1 style="margin:0; font-size: 38px; color: #00E5FF; letter-spacing: 3px; font-weight: 800;">NEONETRA</h1>
-            <h3 style="margin:0; font-size: 17px; color: #FFFFFF; font-weight: 400;">AI-Powered Near-Earth Object Early Monitoring</h3>
+            <h4 style="margin:0; color: white; font-weight:400;">AI-Powered Near-Earth Object Early Monitoring</h4>
             <p style="margin:2px 0 0 0; font-size: 12px; color: #8da2b5;">Educational monitor | NASA NeoWs + Fireballs + Sentry</p>
         </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<hr style='margin: 15px 0; border: 1px solid #1e3a5f;'>", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-.main {background:#0a0f1f;}
-h1 {color:#6cf !important;}
-.metric-card {background:#111a33; padding:15px; border-radius:12px; border:1px solid #1f2a4a;}
-</style>
-""", unsafe_allow_html=True)
-
-st.title("🛰️ NEONETRA")
-st.markdown("### AI-Powered Near-Earth Object Early Monitoring")
-st.caption("Educational monitor | NASA NeoWs + Fireballs + Sentry")
+st.divider()
 st.divider()
 
 NASA_KEY = st.secrets.get("NASA_KEY", "DEMO_KEY")
