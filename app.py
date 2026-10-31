@@ -30,7 +30,7 @@ with col_title:
     """, unsafe_allow_html=True)
 
 st.divider()
-st.divider()
+
 
 NASA_KEY = st.secrets.get("NASA_KEY", "DEMO_KEY")
 
