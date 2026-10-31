@@ -82,8 +82,6 @@ model_info, model_err = train_ai()
 # --- LIVE DATA ---
 @st.cache_data(ttl=3600)
 def get_live(start_date, end_date):
-    # Filter to match NASA browser view (only < 0.05 AU like ESA/JPL Close Approach page)
-    df_live = df_live[df_live['Distance_AU'] < 0.05].copy()
     url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={start_date}&end_date={end_date}&api_key={NASA_KEY}"
     r = requests.get(url, timeout=20)
     r.raise_for_status()
@@ -91,17 +89,14 @@ def get_live(start_date, end_date):
     rows = []
     for dk in data['near_earth_objects']:
         for neo in data['near_earth_objects'][dk]:
-            # FIX: Loop all approaches and pick ONLY those in your selected date range
             for ca in neo['close_approach_data']:
-                try:
-                    ca_date = datetime.strptime(ca['close_approach_date'], "%Y-%m-%d").date()
-                except:
-                    continue
-                # ONLY count if this close approach date is inside user's selected range
-                if start_date <= ca_date <= end_date:
+                # ONLY keep approaches within selected range (fixes slider)
+                ca_date = ca['close_approach_date'][:10]
+                if str(start_date) <= ca_date <= str(end_date):
                     rows.append({
-                        "id": neo['id'], "Name": neo['name'],
-                        "Diameter (m)": neo['estimated_diameter']['meters']['estimated_diameter_max'],
+                        "id": neo['id'],
+                        "Name": neo['name'],
+                        "Diameter (m)": (neo['estimated_diameter']['meters']['estimated_diameter_min']+neo['estimated_diameter']['meters']['estimated_diameter_max'])/2,
                         "Distance_km": float(ca['miss_distance']['kilometers']),
                         "Distance_LD": float(ca['miss_distance']['lunar']),
                         "Distance_AU": float(ca['miss_distance']['astronomical']),
@@ -109,14 +104,15 @@ def get_live(start_date, end_date):
                         "Velocity_kms": float(ca['relative_velocity']['kilometers_per_second']),
                         "Velocity_kmh": float(ca['relative_velocity']['kilometers_per_hour']),
                         "Velocity_mph": float(ca['relative_velocity']['miles_per_hour']),
-                        "Velocity_ms": float(ca['relative_velocity']['kilometers_per_second'])*1000,
                         "Hazardous": neo['is_potentially_hazardous_asteroid'],
-                        "Date": ca['close_approach_date'],
+                        "Date": ca_date,
                         "JPL_URL": neo['nasa_jpl_url']
                     })
-    if not rows:
-        return pd.DataFrame([])
-    return pd.DataFrame(rows).sort_values("Distance_km")
+    df_live = pd.DataFrame(rows)
+    if not df_live.empty:
+        df_live = df_live[df_live['Distance_AU'] < 0.05].copy() # filter AFTER building
+        df_live = df_live.sort_values("Distance_km")
+    return df_live
 @st.cache_data(ttl=3600)
 def get_fireballs():
     try:
@@ -167,7 +163,7 @@ alert_km = st.sidebar.slider("Alert threshold (km)", 50000, 50000000, 7500000, s
 st.sidebar.write(f"≈ {alert_km/384400:.1f} LD | {alert_km/149597870:.4f} AU")
 st.sidebar.markdown("---")
 from datetime import datetime, timedelta
-days_range = st.sidebar.slider("🗓️ Show data for next (days)", 1, 7, 1)
+days_range = st.sidebar.slider("🗓️ Show data for next (days)", 1, 7, 7)
 start_date = datetime.now().date()
 end_date = start_date + timedelta(days=days_range-1)
 
