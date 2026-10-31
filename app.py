@@ -302,7 +302,7 @@ except Exception as e:
            st.dataframe(df_fb.sort_values("energy_kT", ascending=False), use_container_width=True)
            if not df_fb.empty:
                  fig_fb = px.scatter_geo(df_fb, lat="lat", lon="lon", size="energy_kT", hover_name="energy_kT", color="energy_kT", projection="natural earth", title="Past Impact Locations (Fireballs)")
-                  st.plotly_chart(fig_fb, use_container_width=True)
+                 st.plotly_chart(fig_fb, use_container_width=True)
         except Exception as e: st.error(f"Fireball error: {e}")
 
     with tab4:
