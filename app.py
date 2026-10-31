@@ -31,8 +31,7 @@ with col_title:
 
 st.divider()
 
-
-NASA_KEY = st.secrets.get("NASA_KEY", "DEMO_KEY")
+NASA_KEY = st.secrets.get("NASA_KEY", st.secrets.get("NASA_API_KEY", st.secrets.get("NASA_API", "DEMO_KEY")))
 
 # --- SOUND + WHATSAPP ---
 def play_sound():
@@ -217,8 +216,13 @@ enable_whatsapp = st.sidebar.checkbox("WhatsApp Alert")
 enable_sound = st.sidebar.checkbox("Sound Alert", value=True)
 
 # --- METRICS ---
-try: df_live = get_live(start_date, end_date)
-except Exception as e: st.error(f"NASA API error: {e} - Check Secrets"); st.stop()
+df_live = pd.DataFrame()  # <-- ADD THIS LINE BEFORE TRY
+try:
+    df_live = get_live(start_date, end_date)
+except Exception as e:
+    st.error(f"NASA API error: {e}")
+    st.write("Debug:", str(e))
+    df_live = pd.DataFrame()  # Keep empty so app doesn't crash
 
 if not df_live.empty:
     label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
