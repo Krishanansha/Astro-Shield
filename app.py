@@ -170,6 +170,7 @@ try: df_live = get_live()
 except Exception as e: st.error(f"NASA API error: {e} - Check Secrets"); st.stop()
 
 if not df_live.empty:
+     label_text = f"Objects (Today)" if days_range==1 else f"Objects ({days_range} days)"
     c1,c2,c3,c4 = st.columns(4)
     closest_display = format_dist(df_live.iloc[0])
     c1.metric(label_text, len(df_live))
